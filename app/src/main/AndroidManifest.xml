@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ionescu.dan.rccameracontroller">
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <application
+        android:name=".RcCameraControllerApplication"
+
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        <!--android:theme="@style/AppTheme">-->
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data android:name="dan.ionescu.rccameracontroller.mqtt_endpoint"
+            android:value="@string/mqtt_endpoint"/>
+        <meta-data android:name="dan.ionescu.rccameracontroller.mqtt_username"
+            android:value="@string/mqtt_username"/>
+        <meta-data android:name="dan.ionescu.rccameracontroller.mqtt_password"
+            android:value="@string/mqtt_password"/>
+        <meta-data android:name="dan.ionescu.rccameracontroller.stream_endpoint"
+            android:value="@string/stream_endpoint"/>
+        <meta-data android:name="dan.ionescu.rccameracontroller.stream_username"
+            android:value="@string/stream_username"/>
+        <meta-data android:name="dan.ionescu.rccameracontroller.stream_password"
+            android:value="@string/stream_password"/>
+    </application>
+
+</manifest>
