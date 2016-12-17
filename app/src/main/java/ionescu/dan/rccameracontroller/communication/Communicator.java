@@ -1,9 +1,11 @@
 package ionescu.dan.rccameracontroller.communication;
 
+import android.view.Display;
 import android.view.MotionEvent;
 
 public class Communicator {
     private Mqttt mqttt;
+    private Display display;
     private MotorCommandFormatter motorCommandFormatter;
     private IncommingRobotCommunicationCallback incommingRobotCommunicationCallback;
 
@@ -13,7 +15,7 @@ public class Communicator {
     }
 
     public void sendMotionCommand(MotionEvent motionEvent) {
-        String command = this.motorCommandFormatter.get(motionEvent.getX(), motionEvent.getY());
+        String command = this.motorCommandFormatter.formatDirection(motionEvent.getX(), motionEvent.getY(), display);
         this.mqttt.send(command);
     }
 
@@ -28,7 +30,8 @@ public class Communicator {
         this.incommingRobotCommunicationCallback = incommingRobotCommunicationCallback;
     }
 
-    public void connect() {
+    public void initialize(Display display) {
+        this.display = display;
         this.mqttt.connect();
     }
 }

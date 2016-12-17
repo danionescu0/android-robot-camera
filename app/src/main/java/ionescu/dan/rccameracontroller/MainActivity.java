@@ -1,13 +1,16 @@
 package ionescu.dan.rccameracontroller;
 
+import android.content.Context;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.HttpAuthHandler;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -27,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private MotionEvent latestMotionEvent;
     private Handler sendCommandsHandler = new Handler();
     private long transmitCommandsInterval = 300;
+    private Display display;
     private AsyncTask asyncTask;
 
     @Inject Communicator communicator;
@@ -52,7 +56,15 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
         app = (RcCameraControllerApplication) getApplication();
         app.getAppComponent().inject(this);
-        communicator.connect();
+        display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        communicator.initialize(display);
+        this.initializeBatteryUpdater();
+        this.initializeWebview();
+        this.sendCommandsHandler.post(sendCommand);
+    }
+
+    private void initializeBatteryUpdater() {
         asyncTask = new AsyncTask<Void, Float, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
@@ -73,9 +85,6 @@ public class MainActivity extends AppCompatActivity {
                 toolbarBatteryText.setText(Float.toString(batteryLevel) + "%");
             }
         }.execute();
-
-        this.initializeWebview();
-        this.sendCommandsHandler.post(sendCommand);
     }
 
     private void initializeWebview() {
@@ -86,8 +95,10 @@ public class MainActivity extends AppCompatActivity {
         final String streamPassword = MetaDataContainer.get(
                 getApplicationContext(), "dan.ionescu.rccameracontroller.stream_password");
         WebView webView = (WebView) findViewById(R.id.webview);
+        webView.setInitialScale(getScale());
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -108,5 +119,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         webView.loadUrl(streamUrl);
+    }
+
+    private int getScale() {
+        Point size = new Point();
+        display.getSize(size);
+        Double val = new Double(size.x) / new Double(750);
+        val = val * 100d;
+
+        return val.intValue();
     }
 }
