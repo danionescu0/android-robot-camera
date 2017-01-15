@@ -1,34 +1,31 @@
 package ionescu.dan.rccameracontroller.communication;
 
-import android.graphics.Point;
-import android.view.Display;
-
 public class MotorCommandFormatter {
-    private Display display;
     private int minimumScale = 0;
-    private int maximumScale = 100;
+    private int maximumXScale = 100;
+    private int maximumYScale = 50;
+    private float maxX, maxY;
 
-    public String formatDirection(float x, float y, Display display) {
-        this.display = display;
+    public String formatDirection(float x, float y, float maxX, float maxY) {
+        this.maxX = maxX;
+        this.maxY = maxY;
 
-        return  String.format("M:%s:%s", this.getScaledX(x), this.getScaledY(y));
+        return String.format("M:%s:%s", this.getScaledX(x), this.getScaledY(y));
     }
 
     private int getScaledX(float raw) {
-        Point size = new Point();
-        this.display.getSize(size);
-
-        return Math.round(this.getScaledCoordonate(raw, 0, size.x));
+        return Math.round(this.getScaledCoordonate(raw, 0, this.maxX, this.maximumXScale));
     }
 
     private int getScaledY(float raw) {
-        Point size = new Point();
-        this.display.getSize(size);
+        if (raw > this.maxY / 2) {
+            return -1 * Math.round(this.getScaledCoordonate(raw, this.maxY / 2, this.maxY, this.maximumYScale));
+        }
 
-        return Math.round(this.getScaledCoordonate(raw, size.y, 0));
+        return Math.round(this.getScaledCoordonate(raw, this.maxY / 2, 0, this.maximumYScale));
     }
 
-    private float getScaledCoordonate(float raw, float inputMin, float inputMax) {
-        return (raw - inputMin) * (this.maximumScale - this.minimumScale) / (inputMax - inputMin) + this.minimumScale;
+    private float getScaledCoordonate(float raw, float inputMin, float inputMax, int maxScale) {
+        return (raw - inputMin) * (maxScale - this.minimumScale) / (inputMax - inputMin) + this.minimumScale;
     }
 }

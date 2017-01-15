@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,21 +16,22 @@ import android.webkit.HttpAuthHandler;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import javax.inject.Inject;
 
 import ionescu.dan.rccameracontroller.communication.Communicator;
 import ionescu.dan.rccameracontroller.communication.IncommingRobotCommunicationCallback;
+import ionescu.dan.rccameracontroller.communication.MoveEvent;
 import ionescu.dan.rccameracontroller.services.MetaDataContainer;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String TAG = "main";
     private RcCameraControllerApplication app;
-    private MotionEvent latestMotionEvent;
+    protected MoveEvent lastMoveEvent;
+    private boolean steeringWheelActive = false;
     private Handler sendCommandsHandler = new Handler();
-    private long transmitCommandsInterval = 300;
     private Display display;
     private AsyncTask asyncTask;
 
@@ -38,13 +40,15 @@ public class MainActivity extends AppCompatActivity {
     private Runnable sendCommand = new Runnable() {
         @Override
         public void run() {
-            sendCommandsHandler.postDelayed(sendCommand, transmitCommandsInterval);
+            long interval = Long.parseLong(MetaDataContainer.get(
+                    getApplicationContext(), "dan.ionescu.rccameracontroller.transmit_command_interval"));
+            sendCommandsHandler.postDelayed(sendCommand, interval);
             asyncTask.getStatus();
-            if (null == latestMotionEvent) {
+            if (false == steeringWheelActive) {
                 return;
             }
-            communicator.sendMotionCommand(latestMotionEvent);
-            latestMotionEvent = null;
+
+            communicator.sendMotionCommand(lastMoveEvent);
         }
     };
 
@@ -58,9 +62,24 @@ public class MainActivity extends AppCompatActivity {
         app.getAppComponent().inject(this);
         display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        communicator.initialize(display);
+        communicator.initialize();
         this.initializeBatteryUpdater();
         this.initializeWebview();
+        ImageView steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
+        steeringWheel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if(motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    steeringWheelActive = false;
+                } else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                    steeringWheelActive = true;
+                }
+                //@ToDo replace this hack with a factory
+                lastMoveEvent = new MoveEvent(motionEvent.getX() - 30, motionEvent.getY() - 160, 500, 500);
+                Log.d("cici", "x:" +  lastMoveEvent.getX() + "  y:" +  lastMoveEvent.getY());
+                return true;
+            }
+        });
         this.sendCommandsHandler.post(sendCommand);
     }
 
@@ -109,13 +128,6 @@ public class MainActivity extends AppCompatActivity {
             public void onReceivedHttpAuthRequest(WebView view,
                                                   HttpAuthHandler handler, String host, String realm) {
                 handler.proceed(streamUsername, streamPassword);
-            }
-        });
-        webView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                latestMotionEvent = motionEvent;
-                return false;
             }
         });
         webView.loadUrl(streamUrl);

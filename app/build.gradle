@@ -38,7 +38,7 @@ dependencies {
 
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile 'com.android.support:design:25.0.1'
-
+    compile 'com.android.support:percent:25.0.1'
 
     apt 'com.google.dagger:dagger-compiler:2.1'
     compile 'com.google.dagger:dagger:2.1'

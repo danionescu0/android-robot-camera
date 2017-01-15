@@ -36,13 +36,38 @@
 
         </android.support.v7.widget.Toolbar>
 
-        <WebView
-            android:id="@+id/webview"
-            android:layout_marginTop="22pt"
-            android:layout_width="fill_parent"
-            android:layout_height="match_parent"
-            android:background="@color/blue"
-            />
+        <android.support.percent.PercentRelativeLayout
+            android:id="@+id/webview_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <WebView
+                android:id="@+id/webview"
+                android:layout_width="600dp"
+                android:layout_marginTop="22pt"
+                app:layout_widthPercent="70%"
+                android:layout_height="wrap_content"
+                />
+            <Button
+                android:layout_width="0dp"
+                app:layout_widthPercent="12%"
+                android:layout_marginTop="22pt"
+                android:layout_alignParentEnd="true"
+                android:layout_height="wrap_content"
+                android:layout_alignRight="@id/webview"
+                android:text="Lights"/>
+
+            <ImageView
+                android:id="@+id/steering_wheel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/steering_wheel"
+                app:layout_widthPercent="30%"
+                android:layout_marginTop="42pt"
+                android:layout_alignRight="@id/webview"
+                android:layout_alignParentEnd="true"
+                />
+        </android.support.percent.PercentRelativeLayout>
 
     </android.support.design.widget.CoordinatorLayout>
 </RelativeLayout>

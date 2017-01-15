@@ -11,7 +11,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 public class Mqttt implements MqttCallback {
-    private String TAG = "main";
+    private String TAG = "mqtt";
     private String sendRobotMovementTopic = "robot/movement";
     private String receiveRobotStatusTopic = "robot/status";
     private String clientId = "AndroidClient";
