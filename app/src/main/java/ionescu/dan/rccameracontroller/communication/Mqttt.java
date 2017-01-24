@@ -22,6 +22,7 @@ public class Mqttt implements MqttCallback {
     private String username;
     private String password;
     private MessageArrivedCallback messageArrivedCallback;
+    private ConnectionStatusCallback connectionStatusCallback;
 
     public Mqttt(String endpoint, String username, String password) {
         this.endpoint = endpoint;
@@ -40,8 +41,11 @@ public class Mqttt implements MqttCallback {
             client.connect(connOpts);
             client.subscribe(this.receiveRobotStatusTopic, qos);
         } catch(MqttException me) {
+            this.setConnectionStatusChanged(false);
             Log.d(TAG,"msg "+me.getMessage());
+            return;
         }
+        this.setConnectionStatusChanged(true);
     }
 
     public void send(String data) {
@@ -49,7 +53,9 @@ public class Mqttt implements MqttCallback {
             MqttMessage message = new MqttMessage(data.getBytes());
             message.setQos(qos);
             client.publish(sendRobotMovementTopic, message);
+            Log.d(TAG, "publishign");
         } catch(MqttException me) {
+            this.setConnectionStatusChanged(false);
             if (me.getReasonCode() == MqttException.REASON_CODE_CLIENT_NOT_CONNECTED) {
                 this.connect();
             }
@@ -67,11 +73,23 @@ public class Mqttt implements MqttCallback {
         this.messageArrivedCallback = messageArrivedCallback;
     }
 
+    public void addConectionStatusListener(final ConnectionStatusCallback connectionStatusCallback) {
+        this.connectionStatusCallback = connectionStatusCallback;
+    }
+
     @Override
     public void connectionLost(Throwable cause) {
-        Log.d(TAG, "connection loast");
+        this.setConnectionStatusChanged(false);
+        Log.d(TAG, "connection lost");
     }
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {}
+
+    private void setConnectionStatusChanged(Boolean newStatus) {
+        if (null == this.connectionStatusCallback) {
+            return;
+        }
+        this.connectionStatusCallback.statusChanged(newStatus);
+    }
 }

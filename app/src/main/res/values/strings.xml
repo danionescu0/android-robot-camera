@@ -1,9 +1,5 @@
 <resources>
-    <string name="mqtt_endpoint">tcp://your_ip:1883</string>
-    <string name="mqtt_username">user</string>
-    <string name="mqtt_password">password</string>
-    <string name="stream_endpoint">host/stream</string>
-    <string name="stream_username">user</string>
-    <string name="stream_password">password</string>
     <string name="transmit_command_interval">100</string>
+    <string name="connection_on">Connected</string>
+    <string name="connection_off">Disconnected</string>
 </resources>

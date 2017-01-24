@@ -1,7 +1,6 @@
 package ionescu.dan.rccameracontroller.communication;
 
 import android.util.Log;
-import android.view.MotionEvent;
 
 public class Communicator {
     private Mqttt mqttt;
@@ -29,6 +28,10 @@ public class Communicator {
             }
         });
         this.incommingRobotCommunicationCallback = incommingRobotCommunicationCallback;
+    }
+
+    public void addConectionStatusListener(final ConnectionStatusCallback connectionStatusCallback) {
+        this.mqttt.addConectionStatusListener(connectionStatusCallback);
     }
 
     public void initialize() {

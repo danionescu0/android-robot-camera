@@ -22,6 +22,7 @@ import android.widget.TextView;
 import javax.inject.Inject;
 
 import ionescu.dan.rccameracontroller.communication.Communicator;
+import ionescu.dan.rccameracontroller.communication.ConnectionStatusCallback;
 import ionescu.dan.rccameracontroller.communication.IncommingRobotCommunicationCallback;
 import ionescu.dan.rccameracontroller.communication.MoveEvent;
 import ionescu.dan.rccameracontroller.services.MetaDataContainer;
@@ -58,12 +59,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar_top);
         setSupportActionBar(myToolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
         app = (RcCameraControllerApplication) getApplication();
         app.getAppComponent().inject(this);
         display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        communicator.initialize();
         this.initializeBatteryUpdater();
+        this.initializeErrorDisplay();
+        communicator.initialize();
         this.initializeWebview();
         ImageView steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
         steeringWheel.setOnTouchListener(new View.OnTouchListener() {
@@ -102,6 +105,30 @@ public class MainActivity extends AppCompatActivity {
                 Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
                 TextView toolbarBatteryText = (TextView) toolbarTop.findViewById(R.id.toolbar_battery_text);
                 toolbarBatteryText.setText(Float.toString(batteryLevel) + "%");
+            }
+        }.execute();
+    }
+
+    private void initializeErrorDisplay() {
+        asyncTask = new AsyncTask<Void, Boolean, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                communicator.addConectionStatusListener(new ConnectionStatusCallback() {
+                    @Override
+                    public void statusChanged(Boolean newStatus) {
+                        publishProgress(newStatus);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            protected void onProgressUpdate(Boolean... values) {
+                boolean newStatus = values[0];
+                Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
+                TextView toolbarBatteryText = (TextView) toolbarTop.findViewById(R.id.toolbar_connection_status);
+                toolbarBatteryText.setText(newStatus ? getResources().getString(R.string.connection_on) :
+                        getResources().getString(R.string.connection_off));
             }
         }.execute();
     }
