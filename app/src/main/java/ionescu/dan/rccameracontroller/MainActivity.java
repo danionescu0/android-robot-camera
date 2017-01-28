@@ -77,9 +77,11 @@ public class MainActivity extends AppCompatActivity {
                 } else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                     steeringWheelActive = true;
                 }
+                if (motionEvent.getX() < 0 || motionEvent.getY() < 0) {
+                    return true;
+                }
                 //@ToDo replace this hack with a factory
-                lastMoveEvent = new MoveEvent(motionEvent.getX() - 30, motionEvent.getY() - 160, 500, 500);
-                Log.d("cici", "x:" +  lastMoveEvent.getX() + "  y:" +  lastMoveEvent.getY());
+                lastMoveEvent = new MoveEvent(motionEvent.getX(), motionEvent.getY(), 588, 600);
                 return true;
             }
         });
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         final String streamPassword = MetaDataContainer.get(
                 getApplicationContext(), "dan.ionescu.rccameracontroller.stream_password");
         WebView webView = (WebView) findViewById(R.id.webview);
-        webView.setInitialScale(getScale());
+        webView.setInitialScale(getWebviewScale());
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
 
@@ -160,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl(streamUrl);
     }
 
-    private int getScale() {
+    private int getWebviewScale() {
         Point size = new Point();
         display.getSize(size);
         Double val = new Double(size.x) / new Double(750);

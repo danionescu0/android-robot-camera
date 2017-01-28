@@ -40,9 +40,9 @@ public class Mqttt implements MqttCallback {
             client.setCallback(this);
             client.connect(connOpts);
             client.subscribe(this.receiveRobotStatusTopic, qos);
-        } catch(MqttException me) {
+        } catch(MqttException e) {
             this.setConnectionStatusChanged(false);
-            Log.d(TAG,"msg "+me.getMessage());
+            Log.d(TAG,"Error connectiong:" + e.getMessage());
             return;
         }
         this.setConnectionStatusChanged(true);
@@ -53,13 +53,12 @@ public class Mqttt implements MqttCallback {
             MqttMessage message = new MqttMessage(data.getBytes());
             message.setQos(qos);
             client.publish(sendRobotMovementTopic, message);
-            Log.d(TAG, "publishign");
-        } catch(MqttException me) {
+        } catch(MqttException e) {
             this.setConnectionStatusChanged(false);
-            if (me.getReasonCode() == MqttException.REASON_CODE_CLIENT_NOT_CONNECTED) {
+            if (e.getReasonCode() == MqttException.REASON_CODE_CLIENT_NOT_CONNECTED) {
                 this.connect();
             }
-            Log.d(TAG,"msg "+me.getMessage());
+            Log.d(TAG,"Error sending message:" + e.getMessage());
         }
     }
 
@@ -80,7 +79,6 @@ public class Mqttt implements MqttCallback {
     @Override
     public void connectionLost(Throwable cause) {
         this.setConnectionStatusChanged(false);
-        Log.d(TAG, "connection lost");
     }
 
     @Override

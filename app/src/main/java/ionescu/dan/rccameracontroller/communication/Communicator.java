@@ -15,7 +15,7 @@ public class Communicator {
     public void sendMotionCommand(MoveEvent moveEvent) {
         String command = this.motorCommandFormatter.formatDirection(
                 moveEvent.getX(), moveEvent.getY(), moveEvent.getMaxX(), moveEvent.getMaxY());
-        Log.d("cici", command);
+        Log.d("motion-cmd:", command);
         this.mqttt.send(command);
     }
 
