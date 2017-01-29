@@ -25,6 +25,7 @@ import ionescu.dan.rccameracontroller.communication.Communicator;
 import ionescu.dan.rccameracontroller.communication.ConnectionStatusCallback;
 import ionescu.dan.rccameracontroller.communication.IncommingRobotCommunicationCallback;
 import ionescu.dan.rccameracontroller.communication.MoveEvent;
+import ionescu.dan.rccameracontroller.communication.MoveEventFactory;
 import ionescu.dan.rccameracontroller.services.MetaDataContainer;
 
 public class MainActivity extends AppCompatActivity {
@@ -63,11 +64,17 @@ public class MainActivity extends AppCompatActivity {
         app = (RcCameraControllerApplication) getApplication();
         app.getAppComponent().inject(this);
         display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
+        findViewById(R.id.light_switch).bringToFront();
         this.initializeBatteryUpdater();
         this.initializeErrorDisplay();
+        this.initializeSteeringWheel();
         communicator.initialize();
         this.initializeWebview();
+
+        this.sendCommandsHandler.post(sendCommand);
+    }
+
+    private void initializeSteeringWheel() {
         ImageView steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
         steeringWheel.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -80,12 +87,11 @@ public class MainActivity extends AppCompatActivity {
                 if (motionEvent.getX() < 0 || motionEvent.getY() < 0) {
                     return true;
                 }
-                //@ToDo replace this hack with a factory
-                lastMoveEvent = new MoveEvent(motionEvent.getX(), motionEvent.getY(), 588, 600);
+                Log.d("motion-cmd:", motionEvent.getX() + " -- " + motionEvent.getY());
+                lastMoveEvent = MoveEventFactory.createFromMotion(motionEvent, view);
                 return true;
             }
         });
-        this.sendCommandsHandler.post(sendCommand);
     }
 
     private void initializeBatteryUpdater() {

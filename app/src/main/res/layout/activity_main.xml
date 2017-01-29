@@ -80,23 +80,40 @@
                     android:layout_width="0dip"
                     android:layout_height="fill_parent"
                     android:layout_weight="0.35">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
 
-                    <ImageView
-                        android:id="@+id/steering_wheel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:adjustViewBounds="true"
-                        android:maxWidth="212dp"
-                        android:scaleType="fitCenter"
-                        android:layout_marginTop="60dp"
-                        android:src="@drawable/steering_wheel"
-                        />
+                        <RelativeLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="0dip"
+                            android:layout_weight="0.75">
+                                <ImageView
+                                    android:id="@+id/steering_wheel"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:adjustViewBounds="true"
+                                    android:maxWidth="212dp"
+                                    android:scaleType="fitCenter"
+                                    android:layout_marginTop="40dp"
+                                    android:src="@drawable/steering_wheel"
+                                    />
+                        </RelativeLayout>
 
-                    <Button
-                        android:layout_width="0dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_height="wrap_content"
-                        android:text="Lights"/>
+                        <RelativeLayout
+                            android:id="@+id/light_switch"
+
+                            android:layout_width="fill_parent"
+                            android:layout_height="0dip"
+                            android:layout_weight="0.25">
+                            <Button
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:text="Lights"/>
+                        </RelativeLayout>
+
+                    </LinearLayout>
                 </RelativeLayout>
 
         </LinearLayout>
