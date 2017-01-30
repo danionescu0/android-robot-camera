@@ -1,6 +1,7 @@
 package ionescu.dan.rccameracontroller;
 
 import android.content.Context;
+import android.graphics.Matrix;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeSteeringWheel() {
-        ImageView steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
+        final ImageView steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
         steeringWheel.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -87,7 +88,13 @@ public class MainActivity extends AppCompatActivity {
                 if (motionEvent.getX() < 0 || motionEvent.getY() < 0) {
                     return true;
                 }
-                Log.d("motion-cmd:", motionEvent.getX() + " -- " + motionEvent.getY());
+                Matrix matrix = new Matrix();
+                steeringWheel.setScaleType(ImageView.ScaleType.MATRIX);
+                matrix.postRotate(motionEvent.getX(), steeringWheel.getDrawable().getBounds().width() / 2,
+                        steeringWheel.getDrawable().getBounds().height() / 2);
+                matrix.postScale(0.36f, 0.36f);
+                steeringWheel.setImageMatrix(matrix);
+//                Log.d("motion-cmd:", motionEvent.getX() + " -- " + motionEvent.getY());
                 lastMoveEvent = MoveEventFactory.createFromMotion(motionEvent, view);
                 return true;
             }
