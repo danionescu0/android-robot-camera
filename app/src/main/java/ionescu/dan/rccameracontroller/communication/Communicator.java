@@ -4,17 +4,23 @@ import android.util.Log;
 
 public class Communicator {
     private Mqttt mqttt;
-    private MotorCommandFormatter motorCommandFormatter;
+    private SerialCommandFormatter serialCommandFormatter;
     private IncommingRobotCommunicationCallback incommingRobotCommunicationCallback;
+    private DirectionsInterpretter directionsInterpretter;
 
-    public Communicator(Mqttt mqttt, MotorCommandFormatter motorCommandFormatter) {
+    public Communicator(Mqttt mqttt, SerialCommandFormatter serialCommandFormatter,
+                        DirectionsInterpretter directionsInterpretter) {
         this.mqttt = mqttt;
-        this.motorCommandFormatter = motorCommandFormatter;
+        this.serialCommandFormatter = serialCommandFormatter;
+        this.directionsInterpretter = directionsInterpretter;
     }
 
     public void sendMotionCommand(MoveEvent moveEvent) {
-        String command = this.motorCommandFormatter.formatDirection(
-                moveEvent.getX(), moveEvent.getY(), moveEvent.getMaxX(), moveEvent.getMaxY());
+        String command = this.serialCommandFormatter.
+                formatDirection(
+                        directionsInterpretter.getScaledX(moveEvent),
+                        directionsInterpretter.getScaledY(moveEvent)
+                );
         Log.d("motion-cmd:", command);
         this.mqttt.send(command);
     }

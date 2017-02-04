@@ -24,6 +24,7 @@ import javax.inject.Inject;
 
 import ionescu.dan.rccameracontroller.communication.Communicator;
 import ionescu.dan.rccameracontroller.communication.ConnectionStatusCallback;
+import ionescu.dan.rccameracontroller.communication.DirectionsInterpretter;
 import ionescu.dan.rccameracontroller.communication.IncommingRobotCommunicationCallback;
 import ionescu.dan.rccameracontroller.communication.MoveEvent;
 import ionescu.dan.rccameracontroller.communication.MoveEventFactory;
@@ -39,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private AsyncTask asyncTask;
 
     @Inject Communicator communicator;
+
+    @Inject DirectionsInterpretter directionsInterpretter;
 
     private Runnable sendCommand = new Runnable() {
         @Override
@@ -88,14 +91,16 @@ public class MainActivity extends AppCompatActivity {
                 if (motionEvent.getX() < 0 || motionEvent.getY() < 0) {
                     return true;
                 }
+                lastMoveEvent = MoveEventFactory.createFromMotion(motionEvent, view);
                 Matrix matrix = new Matrix();
                 steeringWheel.setScaleType(ImageView.ScaleType.MATRIX);
-                matrix.postRotate(motionEvent.getX(), steeringWheel.getDrawable().getBounds().width() / 2,
+                int rotateWheel = directionsInterpretter.getScaledX(lastMoveEvent) * 2;
+                Log.d("motion-cmd:", Integer.toString(rotateWheel));
+                matrix.postRotate(rotateWheel, steeringWheel.getDrawable().getBounds().width() / 2,
                         steeringWheel.getDrawable().getBounds().height() / 2);
                 matrix.postScale(0.36f, 0.36f);
                 steeringWheel.setImageMatrix(matrix);
 //                Log.d("motion-cmd:", motionEvent.getX() + " -- " + motionEvent.getY());
-                lastMoveEvent = MoveEventFactory.createFromMotion(motionEvent, view);
                 return true;
             }
         });

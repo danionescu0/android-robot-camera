@@ -7,7 +7,8 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import ionescu.dan.rccameracontroller.communication.Communicator;
-import ionescu.dan.rccameracontroller.communication.MotorCommandFormatter;
+import ionescu.dan.rccameracontroller.communication.DirectionsInterpretter;
+import ionescu.dan.rccameracontroller.communication.SerialCommandFormatter;
 import ionescu.dan.rccameracontroller.communication.Mqttt;
 import ionescu.dan.rccameracontroller.services.MetaDataContainer;
 
@@ -26,13 +27,20 @@ public class AppModule {
 
     @Provides
     @Singleton
-    MotorCommandFormatter providesMottorCommandFormatter() {
-        return new MotorCommandFormatter();
+    SerialCommandFormatter providesMottorCommandFormatter() {
+        return new SerialCommandFormatter();
     }
 
     @Provides
     @Singleton
-    Communicator providesCommunicator(Mqttt mqttt, MotorCommandFormatter motorCommandFormatter) {
-        return new Communicator(mqttt, motorCommandFormatter);
+    DirectionsInterpretter providesDirectionsInterpretter() {
+        return new DirectionsInterpretter();
+    }
+
+    @Provides
+    @Singleton
+    Communicator providesCommunicator(Mqttt mqttt, SerialCommandFormatter serialCommandFormatter,
+                                      DirectionsInterpretter directionsInterpretter) {
+        return new Communicator(mqttt, serialCommandFormatter, directionsInterpretter);
     }
 }
