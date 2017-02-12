@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +18,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import javax.inject.Inject;
 
@@ -28,16 +28,19 @@ import ionescu.dan.rccameracontroller.communication.DirectionsInterpretter;
 import ionescu.dan.rccameracontroller.communication.IncommingRobotCommunicationCallback;
 import ionescu.dan.rccameracontroller.communication.MoveEvent;
 import ionescu.dan.rccameracontroller.communication.MoveEventFactory;
+import ionescu.dan.rccameracontroller.listeners.LightSwitchListener;
 import ionescu.dan.rccameracontroller.services.MetaDataContainer;
 
 public class MainActivity extends AppCompatActivity {
 
     private RcCameraControllerApplication app;
     protected MoveEvent lastMoveEvent;
+    private boolean lastSentLightSwitchState;
     private boolean steeringWheelActive = false;
     private Handler sendCommandsHandler = new Handler();
     private Display display;
     private AsyncTask asyncTask;
+    private LightSwitchListener lightSwitchListener;
 
     @Inject Communicator communicator;
 
@@ -50,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
                     getApplicationContext(), "dan.ionescu.rccameracontroller.transmit_command_interval"));
             sendCommandsHandler.postDelayed(sendCommand, interval);
             asyncTask.getStatus();
+            if (lightSwitchListener.getLastSwitchState() != lastSentLightSwitchState) {
+                communicator.sendLightCommand(lightSwitchListener.getLastSwitchState());
+                lastSentLightSwitchState = lightSwitchListener.getLastSwitchState();
+            }
             if (false == steeringWheelActive) {
                 return;
             }
@@ -68,10 +75,12 @@ public class MainActivity extends AppCompatActivity {
         app = (RcCameraControllerApplication) getApplication();
         app.getAppComponent().inject(this);
         display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        this.lightSwitchListener = new LightSwitchListener();
         findViewById(R.id.light_switch).bringToFront();
         this.initializeBatteryUpdater();
         this.initializeErrorDisplay();
         this.initializeSteeringWheel();
+        this.initializeLightButton();
         communicator.initialize();
         this.initializeWebview();
 
@@ -92,18 +101,25 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
                 lastMoveEvent = MoveEventFactory.createFromMotion(motionEvent, view);
-                Matrix matrix = new Matrix();
-                steeringWheel.setScaleType(ImageView.ScaleType.MATRIX);
-                int rotateWheel = directionsInterpretter.getScaledX(lastMoveEvent) * 2;
-                Log.d("motion-cmd:", Integer.toString(rotateWheel));
-                matrix.postRotate(rotateWheel, steeringWheel.getDrawable().getBounds().width() / 2,
-                        steeringWheel.getDrawable().getBounds().height() / 2);
-                matrix.postScale(0.36f, 0.36f);
-                steeringWheel.setImageMatrix(matrix);
-//                Log.d("motion-cmd:", motionEvent.getX() + " -- " + motionEvent.getY());
+                rotateWheel(steeringWheel);
                 return true;
             }
         });
+    }
+
+    private void rotateWheel(ImageView steeringWheel) {
+        Matrix matrix = new Matrix();
+        steeringWheel.setScaleType(ImageView.ScaleType.MATRIX);
+        int rotateWheel = directionsInterpretter.getScaledX(lastMoveEvent) * 2;
+        matrix.postRotate(rotateWheel, steeringWheel.getDrawable().getBounds().width() / 2,
+                steeringWheel.getDrawable().getBounds().height() / 2);
+        matrix.postScale(0.36f, 0.36f);
+        steeringWheel.setImageMatrix(matrix);
+    }
+
+    private void initializeLightButton() {
+        final ToggleButton toggleButton = (ToggleButton) findViewById(R.id.light_switch);
+        toggleButton.setOnCheckedChangeListener(this.lightSwitchListener);
     }
 
     private void initializeBatteryUpdater() {
@@ -121,12 +137,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected void onProgressUpdate(Float... values) {
-                Float batteryLevel = values[0];
-                Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
-                TextView toolbarBatteryText = (TextView) toolbarTop.findViewById(R.id.toolbar_battery_text);
-                toolbarBatteryText.setText(Float.toString(batteryLevel) + "%");
+                updateBatteryStatus(values[0]);
             }
         }.execute();
+    }
+
+    private void updateBatteryStatus(Float batteryLevel) {
+        Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
+        TextView toolbarBatteryText = (TextView) toolbarTop.findViewById(R.id.toolbar_battery_text);
+        toolbarBatteryText.setText(Float.toString(batteryLevel) + "%");
     }
 
     private void initializeErrorDisplay() {
@@ -144,13 +163,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected void onProgressUpdate(Boolean... values) {
-                boolean newStatus = values[0];
-                Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
-                TextView toolbarBatteryText = (TextView) toolbarTop.findViewById(R.id.toolbar_connection_status);
-                toolbarBatteryText.setText(newStatus ? getResources().getString(R.string.connection_on) :
-                        getResources().getString(R.string.connection_off));
+                updateErrorStatus(values[0]);
             }
         }.execute();
+    }
+
+    private void updateErrorStatus(boolean newStatus) {
+        Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
+        TextView toolbarBatteryText = (TextView) toolbarTop.findViewById(R.id.toolbar_connection_status);
+        toolbarBatteryText.setText(newStatus ? getResources().getString(R.string.connection_on) :
+                getResources().getString(R.string.connection_off));
     }
 
     private void initializeWebview() {

@@ -102,15 +102,16 @@
                         </RelativeLayout>
 
                         <RelativeLayout
-                            android:id="@+id/light_switch"
-
                             android:layout_width="fill_parent"
                             android:layout_height="0dip"
                             android:layout_weight="0.25">
-                            <Button
-                                android:layout_width="0dp"
+                            <ToggleButton
+                                android:id="@+id/light_switch"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Lights"/>
+                                android:textOff="Lights OFF"
+                                android:textOn="Lights ON"/>
+
                         </RelativeLayout>
 
                     </LinearLayout>

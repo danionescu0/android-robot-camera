@@ -25,6 +25,12 @@ public class Communicator {
         this.mqttt.send(command);
     }
 
+    public void sendLightCommand(boolean state) {
+        String command = this.serialCommandFormatter.formatLights(state);
+        Log.d("light-cmd:", command);
+        this.mqttt.send(command);
+    }
+
     public void addIncommingMessageListener(final IncommingRobotCommunicationCallback incommingRobotCommunicationCallback) {
         this.mqttt.addMessageArrivedListener(new MessageArrivedCallback() {
             @Override

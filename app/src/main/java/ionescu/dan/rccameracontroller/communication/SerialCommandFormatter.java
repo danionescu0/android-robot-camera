@@ -6,6 +6,6 @@ public class SerialCommandFormatter {
     }
 
     public String formatLights(boolean state) {
-        return "L:%s" + (state ? "1" : "0");
+        return String.format("L:%s", (state ? "1" : "0"));
     }
 }
