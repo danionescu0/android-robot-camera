@@ -2,6 +2,9 @@ package ionescu.dan.rccameracontroller.communication;
 
 import android.util.Log;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Communicator {
     private Mqttt mqttt;
     private SerialCommandFormatter serialCommandFormatter;
@@ -33,10 +36,24 @@ public class Communicator {
 
     public void addIncommingMessageListener(final IncommingRobotCommunicationCallback incommingRobotCommunicationCallback) {
         this.mqttt.addMessageArrivedListener(new MessageArrivedCallback() {
+            Pattern batteryUpdate = Pattern.compile("B:([0-9/.]{3,4});");
+            Pattern distanceUpdate = Pattern.compile("F=([0-9]{1,2}):B=([0-9]{1,2});");
+
             @Override
             public void messageArrived(String topic, String message) {
-                float level = Float.parseFloat(message.replaceAll("[^0-9.]",""));
-                incommingRobotCommunicationCallback.batteryLevelUpdated(level);
+                Matcher batteryMatcher = batteryUpdate.matcher(message);
+                Matcher distanceMatcher = distanceUpdate.matcher(message);
+                if (batteryMatcher.matches()) {
+                    incommingRobotCommunicationCallback.batteryLevelUpdated(
+                            Float.parseFloat(batteryMatcher.group(1))
+                    );
+                }
+                if (distanceMatcher.matches()) {
+                    incommingRobotCommunicationCallback.distanceUpdated(
+                            Float.parseFloat(distanceMatcher.group(1)),
+                            Float.parseFloat(distanceMatcher.group(2))
+                    );
+                }
             }
         });
         this.incommingRobotCommunicationCallback = incommingRobotCommunicationCallback;

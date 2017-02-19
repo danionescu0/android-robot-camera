@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         this.lightSwitchListener = new LightSwitchListener();
         findViewById(R.id.light_switch).bringToFront();
-        this.initializeBatteryUpdater();
+        this.initializeIncommingCommunicationProcesser();
         this.initializeErrorDisplay();
         this.initializeSteeringWheel();
         this.initializeLightButton();
@@ -122,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         toggleButton.setOnCheckedChangeListener(this.lightSwitchListener);
     }
 
-    private void initializeBatteryUpdater() {
+    private void initializeIncommingCommunicationProcesser() {
         asyncTask = new AsyncTask<Void, Float, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
@@ -131,13 +132,23 @@ public class MainActivity extends AppCompatActivity {
                     public void batteryLevelUpdated(float level) {
                         publishProgress(level);
                     }
+
+                    @Override
+                    public void distanceUpdated(float front, float back) {
+                        publishProgress(null, front, back);
+                    }
                 });
                 return null;
             }
 
             @Override
             protected void onProgressUpdate(Float... values) {
-                updateBatteryStatus(values[0]);
+                if (null != values[0]) {
+                    updateBatteryStatus(values[0]);
+                }
+                if (null != values[1] && null != values[2]) {
+                    updateObstacleStatus(values[1], values[2]);
+                }
             }
         }.execute();
     }
@@ -146,6 +157,16 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
         TextView toolbarBatteryText = (TextView) toolbarTop.findViewById(R.id.toolbar_battery_text);
         toolbarBatteryText.setText(Float.toString(batteryLevel) + "%");
+    }
+
+    private void updateObstacleStatus(Float front, Float back) {
+        Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
+        TextView toolbarObstacleText = (TextView) toolbarTop.findViewById(R.id.toolbar_obstacle_text);
+        String status = "";
+        status += (front > 0) ? "↑" : "";
+        status += (back > 0) ? "↓" : "";
+        status = (status == "") ? "-" : status;
+        toolbarObstacleText.setText(status);
     }
 
     private void initializeErrorDisplay() {
