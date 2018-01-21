@@ -1,10 +1,28 @@
 # Android robot camera
 This is the frontend of a mobile camera robot. The robot will stream the
-video using UV4l.
-The platform will receive commands using mqtt, and will transmit things
-like battery level and infrared senzors around the robot.
+video using UV4l and the application will display the stream using a webview.
 
-The raspberry pi and arduino project are located [here](https://github.com/danionescu0/robot-camera-platform).
+The raspberry pi and arduino project are located [here](https://github.com/danionescu0/robot-camera-platform)
+
+   The application has only a main screen, in the left of the screen the streamming image is displayed. On the right
+there are the controls. The main control is a steering wheel, touch the steering wheel in the direction you
+wish the robot to move. Below the steering wheel there is a headlight button, touch it to toggle the light.
+
+  In the top right corner there is a text like : "- Batt Connected".
+
+* First dash means no obstacles, if there is an obstacle in front or in the back of the robot it will be signaled with a small arrow pointing in front or in the back.
+
+* The "Batt" status is not implemented yed.
+
+* "Connected" means that mqtt server is connected so the robot can be used, the other possibl value is "Disconnected"
+
+
+# Screenshots
+![main.jpg](https://github.com/danionescu0/android-robot-camera/blob/master/screenshots/main.jpg)
+
+# Working diagram
+![main.jpg](https://github.com/danionescu0/android-robot-camera/blob/master/resources/diagram1.jpg)
+
 
 # Configuration
 1. passwords.xml
@@ -20,6 +38,9 @@ The raspberry pi and arduino project are located [here](https://github.com/danio
 ````
 
 2. strings.xml
+
+This "transmit_command_interval" value is a default and it's ok to leave it to 100 ms.
+
 ````
     <!--how long between motor commands next transmissions (in milliseconds)-->
     <string name="transmit_command_interval">100</string>
