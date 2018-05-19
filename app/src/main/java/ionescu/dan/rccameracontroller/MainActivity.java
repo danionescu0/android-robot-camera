@@ -30,21 +30,67 @@ import ionescu.dan.rccameracontroller.listeners.LightSwitchListener;
 import ionescu.dan.rccameracontroller.services.MetaDataContainer;
 
 public class MainActivity extends AppCompatActivity {
-
     private RcCameraControllerApplication app;
-    protected MoveEvent lastMoveEvent;
     private boolean lastSentLightSwitchState;
     private boolean steeringWheelActive = false;
     private Handler sendCommandsHandler = new Handler();
     private Display display;
     private AsyncTask asyncTask;
     private LightSwitchListener lightSwitchListener;
+    ImageView steeringWheel;
+    protected MoveEvent lastMoveEvent;
 
     @Inject Communicator communicator;
 
     @Inject DirectionsInterpretter directionsInterpretter;
 
     @Inject WebviewSetup webviewSetup;
+
+    private class CommunicationProcesser extends AsyncTask<Void, Float, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            communicator.addIncommingMessageListener(new IncommingRobotCommunicationCallback() {
+                @Override
+                public void batteryLevelUpdated(float level) {
+                    publishProgress(level);
+                }
+
+                @Override
+                public void distanceUpdated(float front, float back) {
+                    publishProgress(null, front, back);
+                }
+            });
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Float... values) {
+            if (null != values[0]) {
+                updateBatteryStatus(values[0]);
+            }
+            if (null != values[1] && null != values[2]) {
+                updateObstacleStatus(values[1], values[2]);
+            }
+        }
+    }
+
+    private class SteeringWheelListener implements View.OnTouchListener {
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            if(motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                steeringWheelActive = false;
+            } else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                steeringWheelActive = true;
+            }
+            if (motionEvent.getX() < 0 || motionEvent.getY() < 0) {
+                return true;
+            }
+            lastMoveEvent = MoveEventFactory.createFromMotion(motionEvent, view);
+            rotateWheel(steeringWheel);
+
+            return true;
+        }
+    }
 
     private Runnable sendCommand = new Runnable() {
         @Override
@@ -57,11 +103,9 @@ public class MainActivity extends AppCompatActivity {
                 communicator.sendLightCommand(lightSwitchListener.getLastSwitchState());
                 lastSentLightSwitchState = lightSwitchListener.getLastSwitchState();
             }
-            if (!steeringWheelActive) {
-                return;
+            if (steeringWheelActive) {
+                communicator.sendMotionCommand(lastMoveEvent);
             }
-
-            communicator.sendMotionCommand(lastMoveEvent);
         }
     };
 
@@ -74,37 +118,18 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         app = (RcCameraControllerApplication) getApplication();
         app.getAppComponent().inject(this);
+        steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
+        lightSwitchListener = new LightSwitchListener();
         display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-        this.lightSwitchListener = new LightSwitchListener();
         findViewById(R.id.light_switch).bringToFront();
-        this.initializeIncommingCommunicationProcesser();
+        this.asyncTask = new CommunicationProcesser().execute();
         this.initializeErrorDisplay();
-        this.initializeSteeringWheel();
+        steeringWheel.setOnTouchListener(new SteeringWheelListener());
         this.initializeLightButton();
         communicator.initialize();
         this.initializeWebview();
 
         this.sendCommandsHandler.post(sendCommand);
-    }
-
-    private void initializeSteeringWheel() {
-        final ImageView steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
-        steeringWheel.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                    steeringWheelActive = false;
-                } else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                    steeringWheelActive = true;
-                }
-                if (motionEvent.getX() < 0 || motionEvent.getY() < 0) {
-                    return true;
-                }
-                lastMoveEvent = MoveEventFactory.createFromMotion(motionEvent, view);
-                rotateWheel(steeringWheel);
-                return true;
-            }
-        });
     }
 
     private void rotateWheel(ImageView steeringWheel) {
@@ -120,36 +145,6 @@ public class MainActivity extends AppCompatActivity {
     private void initializeLightButton() {
         final ToggleButton toggleButton = (ToggleButton) findViewById(R.id.light_switch);
         toggleButton.setOnCheckedChangeListener(this.lightSwitchListener);
-    }
-
-    private void initializeIncommingCommunicationProcesser() {
-        asyncTask = new AsyncTask<Void, Float, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                communicator.addIncommingMessageListener(new IncommingRobotCommunicationCallback() {
-                    @Override
-                    public void batteryLevelUpdated(float level) {
-                        publishProgress(level);
-                    }
-
-                    @Override
-                    public void distanceUpdated(float front, float back) {
-                        publishProgress(null, front, back);
-                    }
-                });
-                return null;
-            }
-
-            @Override
-            protected void onProgressUpdate(Float... values) {
-                if (null != values[0]) {
-                    updateBatteryStatus(values[0]);
-                }
-                if (null != values[1] && null != values[2]) {
-                    updateObstacleStatus(values[1], values[2]);
-                }
-            }
-        }.execute();
     }
 
     private void updateBatteryStatus(Float batteryLevel) {

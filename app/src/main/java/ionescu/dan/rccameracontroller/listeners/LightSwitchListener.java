@@ -7,8 +7,8 @@ public class LightSwitchListener implements CompoundButton.OnCheckedChangeListen
     private boolean lastSwitchState;
 
     @Override
-    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-        this.lastSwitchState = b;
+    public void onCheckedChanged(CompoundButton compoundButton, boolean lastSwitchState) {
+        this.lastSwitchState = lastSwitchState;
     }
 
     public boolean getLastSwitchState() {
