@@ -6,6 +6,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import ionescu.dan.rccameracontroller.WebviewSetup;
 import ionescu.dan.rccameracontroller.communication.Communicator;
 import ionescu.dan.rccameracontroller.communication.DirectionsInterpretter;
 import ionescu.dan.rccameracontroller.communication.SerialCommandFormatter;
@@ -42,5 +43,11 @@ public class AppModule {
     Communicator providesCommunicator(Mqttt mqttt, SerialCommandFormatter serialCommandFormatter,
                                       DirectionsInterpretter directionsInterpretter) {
         return new Communicator(mqttt, serialCommandFormatter, directionsInterpretter);
+    }
+
+    @Provides
+    @Singleton
+    WebviewSetup providesWeview() {
+        return new WebviewSetup();
     }
 }

@@ -2,6 +2,10 @@
 This is the frontend of a mobile camera robot. The robot will stream the
 video using UV4l and the application will display the stream using a webview.
 
+Full tutorial on [instructables](https://www.instructables.com/id/Android-Controlled-Robot-Spy-Camera/)
+
+A video demo is available on [youtube](https://youtu.be/6FrEs4C9D-Y)
+
 The raspberry pi and arduino project are located [here](https://github.com/danionescu0/robot-camera-platform)
 
    The application has only a main screen, in the left of the screen the streamming image is displayed. On the right
@@ -12,16 +16,16 @@ wish the robot to move. Below the steering wheel there is a headlight button, to
 
 * First dash means no obstacles, if there is an obstacle in front or in the back of the robot it will be signaled with a small arrow pointing in front or in the back.
 
-* The "Batt" status is not implemented yed.
+* The "Batt" status is not implemented yet.
 
-* "Connected" means that mqtt server is connected so the robot can be used, the other possibl value is "Disconnected"
+* "Connected" means that mqtt server is connected so the robot can be used, the other possible value is "Disconnected"
 
 
 # Screenshots
 ![main.jpg](https://github.com/danionescu0/android-robot-camera/blob/master/screenshots/main.jpg)
 
 # Working diagram
-![main.jpg](https://github.com/danionescu0/android-robot-camera/blob/master/resources/diagram1.jpg)
+![flow-diagram.jpg](https://github.com/danionescu0/android-robot-camera/blob/master/resources/flow-diagram.png)
 
 
 # Configuration

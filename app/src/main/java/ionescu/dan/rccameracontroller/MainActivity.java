@@ -13,10 +13,7 @@ import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.webkit.HttpAuthHandler;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -47,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Inject DirectionsInterpretter directionsInterpretter;
 
+    @Inject WebviewSetup webviewSetup;
+
     private Runnable sendCommand = new Runnable() {
         @Override
         public void run() {
@@ -58,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
                 communicator.sendLightCommand(lightSwitchListener.getLastSwitchState());
                 lastSentLightSwitchState = lightSwitchListener.getLastSwitchState();
             }
-            if (false == steeringWheelActive) {
+            if (!steeringWheelActive) {
                 return;
             }
 
@@ -114,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         int rotateWheel = directionsInterpretter.getScaledX(lastMoveEvent) * 2;
         matrix.postRotate(rotateWheel, steeringWheel.getDrawable().getBounds().width() / 2,
                 steeringWheel.getDrawable().getBounds().height() / 2);
-        matrix.postScale(0.36f, 0.36f);
+        matrix.postScale(0.415f, 0.415f);
         steeringWheel.setImageMatrix(matrix);
     }
 
@@ -162,10 +161,13 @@ public class MainActivity extends AppCompatActivity {
     private void updateObstacleStatus(Float front, Float back) {
         Toolbar toolbarTop = (Toolbar) findViewById(R.id.toolbar_top);
         TextView toolbarObstacleText = (TextView) toolbarTop.findViewById(R.id.toolbar_obstacle_text);
-        String status = "";
-        status += (front > 0) ? "↑" : "";
-        status += (back > 0) ? "↓" : "";
-        status = (status == "") ? "-" : status;
+        String status = "no obstacles";
+        if (front > 0) {
+            status = "obstacle ahead";
+        }
+        else if (back > 0) {
+            status = "obstacle behind";
+        }
         toolbarObstacleText.setText(status);
     }
 
@@ -204,23 +206,9 @@ public class MainActivity extends AppCompatActivity {
         final String streamPassword = MetaDataContainer.get(
                 getApplicationContext(), "dan.ionescu.rccameracontroller.stream_password");
         WebView webView = (WebView) findViewById(R.id.webview);
-        webView.setInitialScale(getWebviewScale());
-        WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return false;
-            }
-            @Override
-            public void onReceivedHttpAuthRequest(WebView view,
-                                                  HttpAuthHandler handler, String host, String realm) {
-                handler.proceed(streamUsername, streamPassword);
-            }
-        });
-        webView.loadUrl(streamUrl);
+        webviewSetup
+                .configure(webView, getWebviewScale(), streamUsername, streamPassword)
+                .loadUrl(streamUrl);
     }
 
     private int getWebviewScale() {
