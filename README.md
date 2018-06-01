@@ -12,6 +12,8 @@ The raspberry pi and arduino project are located [here](https://github.com/danio
 there are the controls. The main control is a steering wheel, touch the steering wheel in the direction you
 wish the robot to move. Below the steering wheel there is a headlight button, touch it to toggle the light.
 
+On the left side of the screen is a webview with the streammed image, you can adjust the image size in the webview by pinch.
+
   In the top right corner there is a text like : "- Batt Connected".
 
 * First dash means no obstacles, if there is an obstacle in front or in the back of the robot it will be signaled with a small arrow pointing in front or in the back.

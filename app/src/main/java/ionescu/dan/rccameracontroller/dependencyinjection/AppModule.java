@@ -6,7 +6,8 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import ionescu.dan.rccameracontroller.WebviewSetup;
+import ionescu.dan.rccameracontroller.VideoStreamWebviewSetup;
+import ionescu.dan.rccameracontroller.WheelRotate;
 import ionescu.dan.rccameracontroller.communication.Communicator;
 import ionescu.dan.rccameracontroller.communication.DirectionsInterpretter;
 import ionescu.dan.rccameracontroller.communication.SerialCommandFormatter;
@@ -24,6 +25,12 @@ public class AppModule {
         String mqtttPassword = MetaDataContainer.get(context, "dan.ionescu.rccameracontroller.mqtt_password");
 
         return new Mqttt(mqttEndpoint, mqtttUsername, mqtttPassword);
+    }
+
+    @Provides
+    @Singleton
+    WheelRotate providesWheelRotate(DirectionsInterpretter directionsInterpretter) {
+        return new WheelRotate(directionsInterpretter);
     }
 
     @Provides
@@ -47,7 +54,7 @@ public class AppModule {
 
     @Provides
     @Singleton
-    WebviewSetup providesWeview() {
-        return new WebviewSetup();
+    VideoStreamWebviewSetup providesWeview() {
+        return new VideoStreamWebviewSetup();
     }
 }

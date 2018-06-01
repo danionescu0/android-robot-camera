@@ -1,14 +1,11 @@
 package ionescu.dan.rccameracontroller;
 
 import android.content.Context;
-import android.graphics.Matrix;
-import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -37,16 +34,20 @@ public class MainActivity extends AppCompatActivity {
     private Display display;
     private AsyncTask asyncTask;
     private LightSwitchListener lightSwitchListener;
-    ImageView steeringWheel;
-    protected MoveEvent lastMoveEvent;
+    private ImageView steeringWheel;
+    private MoveEvent lastMoveEvent;
 
     @Inject Communicator communicator;
 
     @Inject DirectionsInterpretter directionsInterpretter;
 
-    @Inject WebviewSetup webviewSetup;
+    @Inject
+    VideoStreamWebviewSetup videoStreamWebviewSetup;
 
-    private class CommunicationProcesser extends AsyncTask<Void, Float, Void> {
+    @Inject
+    WheelRotate wheelRotate;
+
+    private class IncommingCommunicationProcesser extends AsyncTask<Void, Float, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
             communicator.addIncommingMessageListener(new IncommingRobotCommunicationCallback() {
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
                     publishProgress(null, front, back);
                 }
             });
+
             return null;
         }
 
@@ -77,16 +79,15 @@ public class MainActivity extends AppCompatActivity {
     private class SteeringWheelListener implements View.OnTouchListener {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
+            steeringWheelActive = true;
             if(motionEvent.getAction() == MotionEvent.ACTION_UP) {
                 steeringWheelActive = false;
-            } else if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                steeringWheelActive = true;
             }
             if (motionEvent.getX() < 0 || motionEvent.getY() < 0) {
                 return true;
             }
             lastMoveEvent = MoveEventFactory.createFromMotion(motionEvent, view);
-            rotateWheel(steeringWheel);
+            steeringWheel = wheelRotate.getRotated(steeringWheel, lastMoveEvent);
 
             return true;
         }
@@ -116,35 +117,24 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar_top);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-        app = (RcCameraControllerApplication) getApplication();
-        app.getAppComponent().inject(this);
-        steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
-        lightSwitchListener = new LightSwitchListener();
-        display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        this.app = (RcCameraControllerApplication) getApplication();
+        this.app.getAppComponent().inject(this);
+        this.steeringWheel = (ImageView) findViewById(R.id.steering_wheel);
+        this.lightSwitchListener = new LightSwitchListener();
+        this.display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         findViewById(R.id.light_switch).bringToFront();
-        this.asyncTask = new CommunicationProcesser().execute();
+        this.asyncTask = new IncommingCommunicationProcesser().execute();
         this.initializeErrorDisplay();
-        steeringWheel.setOnTouchListener(new SteeringWheelListener());
+        this.steeringWheel.setOnTouchListener(new SteeringWheelListener());
         this.initializeLightButton();
-        communicator.initialize();
+        this.communicator.initialize();
         this.initializeWebview();
-
         this.sendCommandsHandler.post(sendCommand);
     }
 
-    private void rotateWheel(ImageView steeringWheel) {
-        Matrix matrix = new Matrix();
-        steeringWheel.setScaleType(ImageView.ScaleType.MATRIX);
-        int rotateWheel = directionsInterpretter.getScaledX(lastMoveEvent) * 2;
-        matrix.postRotate(rotateWheel, steeringWheel.getDrawable().getBounds().width() / 2,
-                steeringWheel.getDrawable().getBounds().height() / 2);
-        matrix.postScale(0.415f, 0.415f);
-        steeringWheel.setImageMatrix(matrix);
-    }
-
     private void initializeLightButton() {
-        final ToggleButton toggleButton = (ToggleButton) findViewById(R.id.light_switch);
-        toggleButton.setOnCheckedChangeListener(this.lightSwitchListener);
+        ((ToggleButton) findViewById(R.id.light_switch))
+                .setOnCheckedChangeListener(this.lightSwitchListener);
     }
 
     private void updateBatteryStatus(Float batteryLevel) {
@@ -201,17 +191,8 @@ public class MainActivity extends AppCompatActivity {
         final String streamPassword = MetaDataContainer.get(
                 getApplicationContext(), "dan.ionescu.rccameracontroller.stream_password");
         WebView webView = (WebView) findViewById(R.id.webview);
-        webviewSetup
-                .configure(webView, getWebviewScale(), streamUsername, streamPassword)
+        this.videoStreamWebviewSetup
+                .configure(webView, streamUsername, streamPassword)
                 .loadUrl(streamUrl);
-    }
-
-    private int getWebviewScale() {
-        Point size = new Point();
-        display.getSize(size);
-        Double val = new Double(size.x) / new Double(750);
-        val = val * 100d;
-
-        return val.intValue();
     }
 }
