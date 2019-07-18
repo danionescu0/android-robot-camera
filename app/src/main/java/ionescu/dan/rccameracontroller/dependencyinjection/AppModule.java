@@ -16,7 +16,6 @@ import ionescu.dan.rccameracontroller.services.MetaDataContainer;
 
 @Module
 public class AppModule {
-
     @Provides
     @Singleton
     Mqttt providesMqttt(Context context) {
@@ -41,8 +40,8 @@ public class AppModule {
 
     @Provides
     @Singleton
-    DirectionsInterpretter providesDirectionsInterpretter() {
-        return new DirectionsInterpretter();
+    DirectionsInterpretter providesDirectionsInterpretter(Context context) {
+        return new DirectionsInterpretter(20, 50);
     }
 
     @Provides

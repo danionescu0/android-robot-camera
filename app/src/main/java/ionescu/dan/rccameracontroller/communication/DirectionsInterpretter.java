@@ -1,12 +1,14 @@
 package ionescu.dan.rccameracontroller.communication;
 
 public class DirectionsInterpretter {
-    private int minimumScale = 0;
-    private int maximumScale = 50;
+    private int minimumScale;
+    private int maximumScale;
 
-    /**
-     * @Todo Refactor this duplicate code
-     */
+    public DirectionsInterpretter(int minimumScale, int maximumScale) {
+        this.minimumScale = minimumScale;
+        this.maximumScale = maximumScale;
+    }
+
     public int getScaledX(MoveEvent moveEvent) {
         if (moveEvent.getX() > moveEvent.getMaxX() / 2) {
             return Math.round(this.getScaledCoordonate(moveEvent.getX(), moveEvent.getMaxX() / 2, moveEvent.getMaxX()));

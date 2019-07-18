@@ -51,3 +51,10 @@ This "transmit_command_interval" value is a default and it's ok to leave it to 1
     <!--how long between motor commands next transmissions (in milliseconds)-->
     <string name="transmit_command_interval">100</string>
 ````
+
+
+# Troubleshooting
+
+If the steering wheel appears to scale up or down after touching it , try playing with the WheelRotate
+
+and modify the postScale values

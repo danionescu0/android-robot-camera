@@ -19,7 +19,7 @@ public class WheelRotate {
         int rotateWheel = this.directionsInterpretter.getScaledX(lastMoveEvent) * 2;
         matrix.postRotate(rotateWheel, steeringWheel.getDrawable().getBounds().width() / 2,
                 steeringWheel.getDrawable().getBounds().height() / 2);
-        matrix.postScale(0.415f, 0.415f);
+        matrix.postScale(0.360f, 0.360f);
         steeringWheel.setImageMatrix(matrix);
 
         return steeringWheel;
