@@ -9,7 +9,7 @@
 
     <application
         android:name=".RcCameraControllerApplication"
-
+        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:supportsRtl="true"

@@ -2,6 +2,7 @@ package ionescu.dan.rccameracontroller;
 
 
 import android.webkit.HttpAuthHandler;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -17,8 +18,7 @@ public class VideoStreamWebviewSetup {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return false;
             }
             @Override
